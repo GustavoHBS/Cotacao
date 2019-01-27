@@ -1,5 +1,5 @@
 function loadGraph(coin = "Dollar"){
-	$("#graph").remove();
+	//$("#graph").remove();
 	$.getJSON(
 		'https://cdn.rawgit.com/highcharts/highcharts/057b672172ccc6c08fe7dbb27fc17ebca3f5b770/samples/data/usdeur.json',
 		function (data) {
@@ -94,3 +94,20 @@ function loadGraph(coin = "Dollar"){
 	);
 }
 loadGraph();
+
+
+$("#dollar").on("click", function(){
+	var data = {};
+	data.title = "title";
+	data.message = "message";
+	
+	$.ajax({
+		type: 'POST',
+		data: data,
+		url: 'http://localhost:3000/endpoint',
+		success: function(data) {
+			console.log('success');
+			console.log(JSON.stringify(data));
+		}
+	});
+});

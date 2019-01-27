@@ -1,0 +1,19 @@
+.jumbotron {
+    height: 100vh;
+}
+
+button {
+    width: 100%;
+}
+
+.margin-left {
+    margin-left: 15%;
+}
+
+#graphRow {
+    margin-top: 20px;
+}
+
+#graph {
+    width: 100%;
+}

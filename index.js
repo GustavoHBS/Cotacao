@@ -15,25 +15,23 @@ app.get('/', function (req, res) {
 });
 
 app.post('/endpoint', function (req, res) {
-	var obj = {};
-	request('http://apilayer.net/api/historical?access_key=&currencies=EUR,ARS,BRL&source=USD&format=1&date=').then(function(sucess){
-		console.log(sucess);
-		res.send(sucess);
+	request('http://apilayer.net/api/historical?access_key=&currencies=EUR,ARS,BRL&source=USD&format=1&date=').then(function(result){
+		res.send(getJsonFormatted(result, req.body.coin));
 	});
 });
 
 app.listen(3000, function () {
-	console.log('Example app listening on port 3000!');
+	console.log('Server iniciado na porta 3000!');
 });
 
 function request(hostname){
 	return new Promise(function(resolve, reject) {
 		var lastWeek = getDateLastWeek();
-		console.log(lastWeek);
 		var requestsDone = 0;
 		var results = [];
 		lastWeek.forEach(function(day){
 			var req = http.request(hostname + day, function(res) {
+				res.setEncoding('utf8');
 				res.on('data', function (chunk) {
 					requestsDone++;
 					results.push(chunk);
@@ -53,9 +51,45 @@ function request(hostname){
 function getDateLastWeek(){
 	var dateToday = new Date();
 	var lastDays = [];
-	for(var day = 0; 1 < 7; day++){
-		dateToday.setDate(dateToday.getDate() - day);
-		lastDays.push(`${dateToday.getFullYear()}-${dateToday.getMonth() + 1}-${dateToday.getDate()}`);
+	var month = dateToday.getMonth() + 1;
+	lastDays.push(`${dateToday.getFullYear()}-${month < 10 ? "0" + month : month}-${dateToday.getDate()}`);
+	for(var day = 1; day < 2; day++){
+		dateToday.setDate(dateToday.getDate() - 1);
+		month = dateToday.getMonth() + 1;
+		lastDays.push(`${dateToday.getFullYear()}-${month < 10 ? "0" + month : month}-${dateToday.getDate()}`);
 	}
-	return lastDays();
+	return lastDays;
+}
+
+function convertCoins(data, coin){
+	var convertedCoins = [];
+	data.forEach(function(dataDay){
+		var dataJson = JSON.parse(dataDay);
+		if(coin != "USD"){
+			dataJson.quotes[`USD${coin}`] = dataJson.quotes.USDBRL / dataJson.quotes[`USD${coin}`];
+		}
+		convertedCoins.push(dataJson);
+	});
+	return convertedCoins;
+}
+
+function orderDate(data){
+	return data.sort(function(dataA, dataB){
+		return dataA.date - dataB.date;
+	});
+}
+
+function sliceDataPerCoin(data, coin){
+	var dataCoin = [];
+	data.forEach(function(dataDay){
+		dataCoin.push([dataDay.date, dataDay.quotes[`USD${coin}`]]);
+	});
+	return  dataCoin;
+}
+
+function getJsonFormatted(data, coin){
+	var coinsPerDay = convertCoins(data, coin);
+	coin = coin == "USD" ? "BRL" : coin;
+	coinsPerDay = orderDate(coinsPerDay);
+	return sliceDataPerCoin(coinsPerDay, coin);
 }

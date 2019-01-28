@@ -1,113 +1,108 @@
-function loadGraph(coin = "Dollar"){
-	//$("#graph").remove();
-	$.getJSON(
-		'https://cdn.rawgit.com/highcharts/highcharts/057b672172ccc6c08fe7dbb27fc17ebca3f5b770/samples/data/usdeur.json',
-		function (data) {
-	
-		Highcharts.chart('graph', {
-			
-			chart: {
-				backgroundColor: {
-					linearGradient: [0],
-					stops: [
-						[0, 'rgb(61, 61, 61)']
-					]
-				},
-				zoomType: 'x'
+const COINS = { 
+	ARS: "Peso Argentino",
+	USD: "Dollar",
+	EUR: "Euro"
+};
+
+function loadGraph(coin, data){
+	console.log(coin, data);
+	Highcharts.chart('graph', {
+		chart: {
+			backgroundColor: {
+				linearGradient: [0],
+				stops: [
+					[0, 'rgb(61, 61, 61)']
+				]
 			},
+			zoomType: 'x'
+		},
+		title: {
+			style: {
+				color: "white"
+			},
+			text: `Conversão de Real para ${COINS[coin]}`
+		},
+		subtitle: {
+			style: {
+				color: "white"
+			},
+			text: "Dados dos ultimos 7 dias"
+		},
+		xAxis: {
+			type: 'datetime',
+			style: {
+				color: "white"
+			},
+			labels: {
+				style: {
+					color: 'white'
+				}
+			}
+		},
+		yAxis: {
 			title: {
+				text: 'Valor',
 				style: {
 					color: "white"
 				},
-				text: `Conversão de ${coin} para Real`
 			},
-			subtitle: {
+			labels: {
 				style: {
-					color: "white"
+					color: 'white'
+				}
+			}
+		},
+		legend: {
+			enabled: false
+		},
+		plotOptions: {
+			area: {
+				fillColor: {
+				linearGradient: {
+					x1: 0,
+					y1: 0,
+					x2: 0,
+					y2: 1
 				},
-				text: document.ontouchstart === undefined ?
-					'Click and drag in the plot area to zoom in' : 'Pinch the chart to zoom in'
+				stops: [
+					[0, 'rgb(255, 255, 255)'],
+					[1, 'rgb(0, 0, 0)']
+				]
 			},
-			xAxis: {
-				type: 'datetime',
-				style: {
-					color: "white"
-				},
-				labels: {
-					style: {
-						color: 'white'
-					}
+			marker: {
+				radius: 2
+			},
+			lineWidth: 1,
+			states: {
+				hover: {
+					lineWidth: 1
 				}
 			},
-			yAxis: {
-				title: {
-					text: 'Exchange rate',
-					style: {
-						color: "white"
-					},
-				},
-				labels: {
-					style: {
-						color: 'white'
-					}
-				}
+			threshold: null
 			},
-			legend: {
-				enabled: false
-			},
-			plotOptions: {
-				area: {
-					fillColor: {
-					linearGradient: {
-						x1: 0,
-						y1: 0,
-						x2: 0,
-						y2: 1
-					},
-					stops: [
-						[0, 'rgb(255, 255, 255)'],
-						[1, 'rgb(0, 0, 0)']
-					]
-				},
-				marker: {
-					radius: 2
-				},
-				lineWidth: 1,
-				states: {
-					hover: {
-						lineWidth: 1
-					}
-				},
-				threshold: null
-				},
-				series: {
-					color: '#e47707'
-				}
-			},	
-			series: [{
-				type: 'area',
-				name: `${coin}`,
-				data: data
-			}]
-		});
-		}
-	);
+			series: {
+				color: '#e47707'
+			}
+		},	
+		series: [{
+			type: 'area',
+			name: `${coin}`,
+			data: data
+		}]
+	});
 }
-loadGraph();
 
-
-$("#dollar").on("click", function(){
-	var data = {};
-	data.title = "title";
-	data.message = "message";
-	
+$(".buttonCoin").on("click", function(){
+	var coin = $(this).prop("id");
 	$.ajax({
 		type: 'POST',
-		data: data,
+		data: { coin: coin},
 		url: 'http://localhost:3000/endpoint',
 		success: function(data) {
-			console.log('success');
-			console.log(JSON.stringify(data));
+			console.log(data);
+			loadGraph(coin, data);
 		}
 	});
 });
+
+$("#USD").trigger("click");

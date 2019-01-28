@@ -5,7 +5,6 @@ const COINS = {
 };
 
 function loadGraph(coin, data){
-	console.log(coin, data);
 	Highcharts.chart('graph', {
 		chart: {
 			backgroundColor: {
@@ -20,16 +19,16 @@ function loadGraph(coin, data){
 			style: {
 				color: "white"
 			},
-			text: `Conversão de Real para ${COINS[coin]}`
+			text: `Conversão de ${COINS[coin]}(${coin}) para Real(BRL)`
 		},
 		subtitle: {
 			style: {
 				color: "white"
 			},
-			text: "Dados dos ultimos 7 dias"
+			text: `Valor de 1 ${coin} em BRL`
 		},
 		xAxis: {
-			type: 'datetime',
+			categories: data.dates,
 			style: {
 				color: "white"
 			},
@@ -41,7 +40,7 @@ function loadGraph(coin, data){
 		},
 		yAxis: {
 			title: {
-				text: 'Valor',
+				text: "Valor em BRL",
 				style: {
 					color: "white"
 				},
@@ -58,36 +57,34 @@ function loadGraph(coin, data){
 		plotOptions: {
 			area: {
 				fillColor: {
-				linearGradient: {
-					x1: 0,
-					y1: 0,
-					x2: 0,
-					y2: 1
+					linearGradient: {
+						x1: 0,
+						y1: 0,
+						x2: 0,
+						y2: 1
+					},
+					stops: [
+						[0, 'rgb(255, 255, 255)']
+					]
 				},
-				stops: [
-					[0, 'rgb(255, 255, 255)'],
-					[1, 'rgb(0, 0, 0)']
-				]
-			},
-			marker: {
-				radius: 2
-			},
-			lineWidth: 1,
-			states: {
-				hover: {
-					lineWidth: 1
-				}
-			},
-			threshold: null
+				marker: {
+					radius: 2
+				},
+				lineWidth: 1,
+				states: {
+					hover: {
+						lineWidth: 1
+					}
+				},
+				threshold: null
 			},
 			series: {
 				color: '#e47707'
 			}
 		},	
 		series: [{
-			type: 'area',
 			name: `${coin}`,
-			data: data
+			data: data.valores
 		}]
 	});
 }
@@ -99,7 +96,6 @@ $(".buttonCoin").on("click", function(){
 		data: { coin: coin},
 		url: 'http://localhost:3000/endpoint',
 		success: function(data) {
-			console.log(data);
 			loadGraph(coin, data);
 		}
 	});

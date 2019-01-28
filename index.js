@@ -15,7 +15,7 @@ app.get('/', function (req, res) {
 });
 
 app.post('/endpoint', function (req, res) {
-	request('http://apilayer.net/api/historical?access_key=&currencies=EUR,ARS,BRL&source=USD&format=1&date=').then(function(result){
+	requestHistoricalValue('http://apilayer.net/api/historical?access_key=237b9aa612144c43ed1ae6d5d3c2bef4&currencies=EUR,ARS,BRL&source=USD&format=1&date=').then(function(result){
 		res.send(getJsonFormatted(result, req.body.coin));
 	});
 });
@@ -24,17 +24,17 @@ app.listen(3000, function () {
 	console.log('Server iniciado na porta 3000!');
 });
 
-function request(hostname){
+function requestHistoricalValue(url){
 	return new Promise(function(resolve, reject) {
 		var lastWeek = getDateLastWeek();
 		var requestsDone = 0;
 		var results = [];
 		lastWeek.forEach(function(day){
-			var req = http.request(hostname + day, function(res) {
+			var req = http.request(url + day, function(res) {
 				res.setEncoding('utf8');
-				res.on('data', function (chunk) {
+				res.on('data', function (resultRequest) {
 					requestsDone++;
-					results.push(chunk);
+					results.push(resultRequest);
 					if(requestsDone == lastWeek.length){
 						resolve(results);
 					}
@@ -51,14 +51,17 @@ function request(hostname){
 function getDateLastWeek(){
 	var dateToday = new Date();
 	var lastDays = [];
-	var month = dateToday.getMonth() + 1;
-	lastDays.push(`${dateToday.getFullYear()}-${month < 10 ? "0" + month : month}-${dateToday.getDate()}`);
-	for(var day = 1; day < 2; day++){
+	lastDays.push(getDateFormatted(dateToday));
+	for(var day = 1; day < 7; day++){
 		dateToday.setDate(dateToday.getDate() - 1);
-		month = dateToday.getMonth() + 1;
-		lastDays.push(`${dateToday.getFullYear()}-${month < 10 ? "0" + month : month}-${dateToday.getDate()}`);
+		lastDays.push(getDateFormatted(dateToday));
 	}
 	return lastDays;
+}
+
+function getDateFormatted(date){
+	var month = date.getMonth() + 1;
+	return `${date.getFullYear()}-${month < 10 ? "0" + month : month}-${date.getDate()}`;
 }
 
 function convertCoins(data, coin){
@@ -75,21 +78,31 @@ function convertCoins(data, coin){
 
 function orderDate(data){
 	return data.sort(function(dataA, dataB){
-		return dataA.date - dataB.date;
+		var dateA = dataA.date.replace(/-/g, "");
+		var dateB = dataB.date.replace(/-/g, "");
+		return dateA - dateB;
 	});
 }
 
-function sliceDataPerCoin(data, coin){
-	var dataCoin = [];
+function getDatesAndValuesOfCoin(data, coin){
+	var dataCoin = {
+		dates: [],
+		valores: []
+	};
 	data.forEach(function(dataDay){
-		dataCoin.push([dataDay.date, dataDay.quotes[`USD${coin}`]]);
+		dataCoin.dates.push(formatDateToBr(dataDay.date));
+		dataCoin.valores.push(dataDay.quotes[`USD${coin}`]);
 	});
 	return  dataCoin;
+}
+
+function formatDateToBr(date){
+	return `${date.slice(8)}/${date.slice(5,7)}/${date.slice(0, 4)}`;
 }
 
 function getJsonFormatted(data, coin){
 	var coinsPerDay = convertCoins(data, coin);
 	coin = coin == "USD" ? "BRL" : coin;
 	coinsPerDay = orderDate(coinsPerDay);
-	return sliceDataPerCoin(coinsPerDay, coin);
+	return getDatesAndValuesOfCoin(coinsPerDay, coin);
 }

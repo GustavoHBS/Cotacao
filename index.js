@@ -15,7 +15,7 @@ app.get('/', function (req, res) {
 });
 
 app.post('/endpoint', function (req, res) {
-	requestHistoricalValue('http://apilayer.net/api/historical?access_key=237b9aa612144c43ed1ae6d5d3c2bef4&currencies=EUR,ARS,BRL&source=USD&format=1&date=').then(function(result){
+	requestHistoricalValue(CHAVE_API).then(function(result){
 		res.send(getJsonFormatted(result, req.body.coin));
 	});
 });
